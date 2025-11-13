@@ -1,2 +1,2 @@
-# casacore-website-frontend
+# CasaCore frontend🌵
 Build your space, Build your self🌱🧱
