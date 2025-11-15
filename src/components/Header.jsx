@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 // We'll use lucide-react for icons. You'll need to install it.
 // Run this in your terminal: npm install lucide-react
 import { ShoppingCart, Menu, X, ChevronRight } from 'lucide-react';
+import casaCoreLogo from './untitled12.png';
 
 export default function Header({ setPage }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -19,15 +20,17 @@ export default function Header({ setPage }) {
       <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           
-          {/* Logo / Brand Name */}
+          {/* Logo */}
           <div className="flex-shrink-0">
-            <a
-              href="#"
-              onClick={() => handleNavClick('home')}
-              className="text-2xl font-bold text-green-700 transition-colors hover:text-green-800"
-            >
-              CasaCore
-            </a>
+            <button onClick={() => setPage('home')} className="flex items-center gap-2">
+              {/* --- 2. USE THE IMPORTED VARIABLE --- */}
+              <img 
+                src={casaCoreLogo} // Use the variable here
+                alt="CasaCore Logo" 
+                className="h-8 w-auto"
+                onError={(e) => { e.target.src = 'https://placehold.co/150x50/cccccc/333333?text=Logo+Error'; e.target.alt = 'Logo not found'; }}
+              />
+            </button>
           </div>
 
           {/* Desktop Navigation */}
