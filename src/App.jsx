@@ -15,7 +15,6 @@ export default function App() {
         return <HomePage setPage={setPage} />;
       case 'shop':
         return <ShopPage />;
-      // --- (NEW) Add the case for 'about' ---
       case 'about':
         return <AboutPage />;
       case 'contact':
