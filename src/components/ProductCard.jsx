@@ -4,11 +4,8 @@ import { ShoppingCart } from 'lucide-react';
 // This is our re-usable component.
 // We pass 'product' in as a prop.
 export default function ProductCard({ product }) {
-  // --- FIX ---
-  // Add a guard clause to prevent crashing if the product prop is missing.
-  // This handles cases where the component might be rendered before the product data is loaded.
+  // Guard clause to prevent crashing if data is missing
   if (!product) {
-    // You can return null or a placeholder loading skeleton
     return (
       <div className="group relative overflow-hidden rounded-lg shadow-lg transition-all hover:shadow-xl bg-white animate-pulse">
         <div className="relative h-64 w-full bg-gray-200"></div>
@@ -19,7 +16,6 @@ export default function ProductCard({ product }) {
       </div>
     );
   }
-  // --- END FIX ---
 
   return (
     <div className="group relative overflow-hidden rounded-lg shadow-lg transition-all hover:shadow-xl bg-white">
@@ -27,7 +23,7 @@ export default function ProductCard({ product }) {
       <div className="relative h-64 w-full">
         <img
           src={product.imageUrl}
-          alt={product.alt}
+          alt={product.alt || product.name}
           onError={(e) => { e.target.src = 'https://placehold.co/400x400/EBF4E5/333333?text=Image+Error'; }}
           className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
         />

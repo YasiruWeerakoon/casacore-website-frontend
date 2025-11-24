@@ -1,23 +1,57 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import FilterSidebar from '../components/FilterSidebar.jsx';
 import ProductCard from '../components/ProductCard.jsx';
-
-// Placeholder data for the shop page
-// In the future, this will come from your FastAPI backend!
-const shopProducts = [
-  { id: 1, name: 'Tiny Thorny', price: 'LKR 890.00', imageUrl: 'https://placehold.co/400x400/EBF4E5/333333?text=CasaCore+Cactus', alt: 'A tiny cute cactus in a small pot' },
-  { id: 2, name: 'Green Gem', price: 'LKR 1,150.00', imageUrl: 'https://placehold.co/400x400/EBF4E5/333333?text=CasaCore+Cactus', alt: 'A small succulent with rounded leaves' },
-  { id: 3, name: 'Spikelet', price: 'LKR 990.00', imageUrl: 'https://placehold.co/400x400/EBF4E5/333333?text=CasaCore+Cactus', alt: 'A tall, thin cactus' },
-  { id: 4, name: 'Kandy King', price: 'LKR 1,250.00', imageUrl: 'https://placehold.co/400x400/EBF4E5/333333?text=CasaCore+Cactus', alt: 'A flowering cactus in a decorative pot' },
-  { id: 5, name: 'Moonstone', price: 'LKR 1,400.00', imageUrl: 'https://placehold.co/400x400/EBF4E5/333333?text=CasaCore+Cactus', alt: 'A plump, pale green succulent' },
-  { id: 6, name: 'Desert Star', price: 'LKR 1,050.00', imageUrl: 'https://placehold.co/400x400/EBF4E5/333333?text=CasaCore+Cactus', alt: 'A small, star-shaped cactus' },
-  { id: 7, name: 'Mini Jade', price: 'LKR 950.00', imageUrl: 'https://placehold.co/400x400/EBF4E5/333333?text=CasaCore+Cactus', alt: 'A miniature jade plant' },
-  { id: 8, name: 'Sunset Glow', price: 'LKR 1,300.00', imageUrl: 'https://placehold.co/400x400/EBF4E5/333333?text=CasaCore+Cactus', alt: 'A succulent with reddish-orange tips' },
-];
+import { Loader2 } from 'lucide-react';
 
 export default function ShopPage() {
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    // This function runs when the page loads
+    const fetchProducts = async () => {
+      try {
+        console.log("Fetching products from backend...");
+        // 1. Call your FastAPI Backend
+        const response = await fetch('http://127.0.0.1:8000/api/products');
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch products');
+        }
+
+        // 2. Get the JSON data
+        const data = await response.json();
+        console.log("Data received:", data);
+
+        // 3. Transform data to match what ProductCard expects
+        // (The backend sends 'image_urls', but ProductCard expects 'imageUrl')
+        const formattedProducts = data.map(product => ({
+          ...product,
+          imageUrl: product.image_urls && product.image_urls.length > 0 
+            ? product.image_urls[0] 
+            : 'https://placehold.co/400x400/EBF4E5/333333?text=No+Image',
+          alt: product.description || product.name,
+          // Format price to look like currency if it's just a number
+          price: typeof product.price === 'number' 
+            ? `LKR ${product.price.toFixed(2)}` 
+            : product.price
+        }));
+
+        setProducts(formattedProducts);
+        setLoading(false);
+      } catch (err) {
+        console.error("Error fetching products:", err);
+        setError("Could not load products. Is the backend running?");
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, []);
+
   return (
-    <div className="bg-gray-50 py-12">
+    <div className="bg-gray-50 py-12 min-h-screen">
       <div className="container mx-auto px-6">
         
         {/* Page Header */}
@@ -31,17 +65,18 @@ export default function ShopPage() {
           {/* Filters (Sidebar) */}
           <FilterSidebar />
           
-          {/* Product Grid (Main Content) */}
+          {/* Main Content */}
           <main className="w-full md:w-3/4 lg:w-4/5">
             {/* Sort & View Options */}
             <div className="flex justify-between items-center mb-6 p-4 bg-white rounded-lg shadow-sm">
-              <span className="text-sm text-gray-600">Showing 8 of 12 products</span>
+              <span className="text-sm text-gray-600">
+                {loading ? 'Loading...' : `Showing ${products.length} products`}
+              </span>
               <div className="flex items-center">
                 <label htmlFor="sort" className="mr-2 text-sm font-medium text-gray-700">Sort by:</label>
                 <select 
                   id="sort" 
                   className="pl-3 pr-8 py-2 text-sm border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500"
-                  style={{backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`, backgroundPosition: 'right 0.5rem center', backgroundRepeat: 'no-repeat', backgroundSize: '1.5em 1.5em', WebkitAppearance: 'none', MozAppearance: 'none', appearance: 'none'}}
                 >
                   <option>Featured</option>
                   <option>Price: Low to High</option>
@@ -51,45 +86,39 @@ export default function ShopPage() {
               </div>
             </div>
             
-            {/* Products Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-              {shopProducts.map(product => (
-                <a href="#" key={product.id} onClick={(e) => e.preventDefault()} className="block">
-                  <ProductCard product={product} />
-                </a>
-              ))}
-            </div>
-            
-            {/* Pagination (Static for now) */}
-            <nav className="flex items-center justify-center border-t border-gray-200 px-4 py-6 mt-12 sm:px-0">
-              <div className="flex -mt-px">
-                <a
-                  href="#"
-                  className="inline-flex items-center border-t-2 border-transparent pr-1 pt-4 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700"
-                >
-                  <span className="text-gray-300">Previous</span>
-                </a>
-                <a
-                  href="#"
-                  aria-current="page"
-                  className="inline-flex items-center border-t-2 border-green-600 px-4 pt-4 text-sm font-medium text-green-700"
-                >
-                  1
-                </a>
-                <a
-                  href="#"
-                  className="inline-flex items-center border-t-2 border-transparent px-4 pt-4 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700"
-                >
-                  2
-                </a>
-                <a
-                  href="#"
-                  className="inline-flex items-center border-t-2 border-transparent pl-1 pt-4 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700"
-                >
-                  Next
-                </a>
+            {/* Loading State */}
+            {loading && (
+              <div className="flex justify-center items-center py-20">
+                <Loader2 className="animate-spin text-green-600" size={48} />
+                <span className="ml-4 text-lg text-gray-600">Loading your cacti...</span>
               </div>
-            </nav>
+            )}
+
+            {/* Error State */}
+            {error && (
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative" role="alert">
+                <strong className="font-bold">Error: </strong>
+                <span className="block sm:inline">{error}</span>
+              </div>
+            )}
+
+            {/* Products Grid */}
+            {!loading && !error && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                {products.length === 0 ? (
+                  <div className="col-span-full text-center py-10 text-gray-500">
+                    No products found in the database. Go add some via the API!
+                  </div>
+                ) : (
+                  products.map(product => (
+                    <a href="#" key={product.id || product._id} onClick={(e) => e.preventDefault()} className="block">
+                      <ProductCard product={product} />
+                    </a>
+                  ))
+                )}
+              </div>
+            )}
+            
           </main>
           
         </div>
